@@ -154,7 +154,7 @@ function ensureStyles(){
   if(document.getElementById("patina-admin-style")) return;
   var s=document.createElement("style"); s.id="patina-admin-style";
   s.textContent = `
-  #patina-admin-btn{position:fixed;left:50%;transform:translateX(-50%);bottom:6px;z-index:9999;font-size:10px;letter-spacing:.12em;padding:5px 10px;border-radius:999px;background:rgba(18,18,18,.65);color:rgba(245,236,220,.55);border:1px solid rgba(201,168,122,.25);backdrop-filter:blur(8px);cursor:pointer}
+  #patina-admin-btn{position:fixed;left:50%;transform:translateX(-50%);bottom:38px;z-index:2147483647 !important;font-size:11px;letter-spacing:.12em;padding:8px 14px;border-radius:999px;background:#C9A87A !important;color:#121212 !important;border:2px solid #F5ECDC;box-shadow:0 4px 20px rgba(0,0,0,.6);cursor:pointer;font-weight:700;display:block !important;visibility:visible !important;opacity:1 !important}
   #patina-admin-btn:hover{color:#F5ECDC;border-color:#C9A87A}
   #patina-admin-overlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);display:none;overflow:auto}
   #patina-admin-overlay.open{display:block}
@@ -366,4 +366,25 @@ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded"
 else initAdminBtn();
 // Exponer para debug
 window.__patinaAdmin = {getProducts: getProducts, toStoreFormat: toStoreFormat, fmtGs: fmtGs, calcDiscount: calcDiscount};
+
+// FIX v2: reintentar crear botón 5 veces por si React lo borra, y abrir con ?admin=1
+(function(){
+  function ensureBtn(){
+    if(!document.getElementById("patina-admin-btn")){
+      var b=document.createElement("button");
+      b.id="patina-admin-btn"; b.textContent="Admin";
+      b.onclick=function(){ try{ openAdmin(); }catch(e){ alert("Admin cargado, error: "+e.message); } };
+      document.body.appendChild(b);
+    }
+  }
+  var tries=0;
+  var iv=setInterval(function(){ ensureBtn(); tries++; if(tries>=5) clearInterval(iv); }, 2000);
+  ensureBtn();
+  // Acceso directo: https://patina-py.github.io/?admin=1
+  if(window.location.search.indexOf("admin=1")!==-1){
+    setTimeout(function(){ try{ openAdmin(); }catch(e){} }, 800);
+  }
+  console.log("[PATINA] parche cargado v2 - boton Admin listo");
+})();
+
 })();
