@@ -62,7 +62,7 @@ function toStoreFormat(p){
     saving: d.has ? d.saving : 0,
     hasDiscount: d.has,
     desc: isEmptyVal(p.desc) ? WJ : String(p.desc),
-    badge: isEmptyVal(p.badge) ? WJ : String(p.badge),
+    badge: d.has ? ("-"+d.pct+"% OFF") : WJ,
     stock: (p.stock==null||String(p.stock).trim()==="") ? "" : String(p.stock),
     img: p.img||"",
     waText: p.waText||""
@@ -154,7 +154,7 @@ function ensureStyles(){
   if(document.getElementById("patina-admin-style")) return;
   var s=document.createElement("style"); s.id="patina-admin-style";
   s.textContent = `
-  #patina-admin-btn{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom));z-index:999999;background:rgba(47,58,42,.92);color:rgba(245,236,220,.9);border:1px solid rgba(201,168,122,.4);border-radius:999px;padding:5px 11px;font-size:10px;font-weight:600}
+  #patina-admin-btn{position:fixed;left:50%;transform:translateX(-50%);bottom:6px;z-index:9999;font-size:10px;letter-spacing:.12em;padding:5px 10px;border-radius:999px;background:rgba(18,18,18,.65);color:rgba(245,236,220,.55);border:1px solid rgba(201,168,122,.25);backdrop-filter:blur(8px);cursor:pointer}
   #patina-admin-btn:hover{color:#F5ECDC;border-color:#C9A87A}
   #patina-admin-overlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);display:none;overflow:auto}
   #patina-admin-overlay.open{display:block}
@@ -221,7 +221,8 @@ function openForm(prod){
     + '<div class="pa-row"><div><label class="pa-small">Nombre</label><input id="pa-f-name" value="'+(p.name||"").replace(/"/g,"&quot;")+'"></div><div><label class="pa-small">Categoría</label><select id="pa-f-cat"><option value="cartera" '+(p.category==="cartera"?"selected":"")+'>cartera</option><option value="accesorio" '+(p.category==="accesorio"||p.category==="accesorios"?"selected":"")+'>accesorio</option><option value="oferta" '+(p.category==="oferta"?"selected":"")+'>oferta</option><option value="todos" '+(p.category==="todos"?"selected":"")+'>todos</option></select></div></div>'
     + '<div class="pa-row" style="margin-top:8px"><div><label class="pa-small">Precio (solo números, sin puntos) Ej: 105000</label><input id="pa-f-price" inputmode="numeric" value="'+(p.price||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,\'\');window.__paPreview()"></div><div><label class="pa-small">Precio con descuento (vacío = sin descuento)</label><input id="pa-f-sale" inputmode="numeric" value="'+(p.salePrice||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,\'\');window.__paPreview()"></div></div>'
     + '<div style="margin-top:8px"><label class="pa-small">Descripción (vacío = queda en blanco de verdad)</label><textarea id="pa-f-desc" rows="3">'+(p.desc||"")+'</textarea></div>'
-    + '<div class="pa-row" style="margin-top:8px"><div><label class="pa-small">Etiqueta / Badge (vacío = sin badge)</label><input id="pa-f-badge" value="'+(p.badge||"")+'"></div><div><label class="pa-small">Stock / Unidades (vacío = sin límite)</label><input id="pa-f-stock" inputmode="numeric" value="'+(p.stock||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')"></div></div>'
+    + '<div style="margin-top:8px"><label class="pa-small">Stock / Unidades (vacio = sin limite)</label><input id="pa-f-stock" inputmode="numeric" value="'+(p.stock||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')"></div>'
+    + '<p style="font-size:11px;color:rgba(245,236,220,.65);margin:8px 0">El % OFF se calcula solo. Ej: 105000 / 85000 = -19% OFF, Ahorras Gs 20.000</p>'
     + '<div style="margin-top:10px"><label class="pa-small">Foto — se recorta a 4:3 sin deformar</label><input type="file" id="pa-f-img" accept="image/*" onchange="window.__paCropImage(event)"><div id="pa-img-preview" style="margin-top:8px">'+(p.img?'<img src="'+p.img+'" style="width:120px;height:90px;object-fit:cover;border-radius:8px">':"")+'</div><input type="hidden" id="pa-f-img-data" value="'+(p.img||"")+'"></div>'
     + '<div id="pa-preview" class="pa-preview" style="margin-top:10px"></div>'
     + '<div style="display:flex;gap:8px;margin-top:12px"><button class="pa-btn" onclick="window.__paSave(\''+p.id+'\','+(isNew?"true":"false")+')">Guardar</button><button class="pa-btn-ghost" onclick="document.getElementById(\'pa-form-wrap\').innerHTML=\'\'">Cancelar</button></div>'
@@ -234,7 +235,7 @@ function openForm(prod){
 }
 window.__paFilter=function(v){ renderList(v); };
 window.__paNew=function(){ openForm(null); };
-window.__paEdit=function(id){ var p=getProducts().find(function(x){ return String(x.id)===String(id); }); if(p) openForm(p); };
+window.__paEdit=function(id, ev){ if(ev && ev.stopPropagation) ev.stopPropagation(); var p=getProducts().find(function(x){ return String(x.id)===String(id); }); if(p) openForm(p); };
 window.__paDelete=function(id){
   var p=getProducts().find(function(x){ return String(x.id)===String(id); });
   if(!p) return;
@@ -282,7 +283,7 @@ window.__paSave=function(id, isNew){
   var priceRaw=document.getElementById("pa-f-price").value.replace(/[^0-9]/g,"");
   var saleRaw=document.getElementById("pa-f-sale").value.replace(/[^0-9]/g,"");
   var desc=document.getElementById("pa-f-desc").value; // NO trim forzado: si vacío queda WJ en toStoreFormat
-  var badge=document.getElementById("pa-f-badge").value;
+  var badge=""; // auto, no se escribe a mano
   var stock=document.getElementById("pa-f-stock").value.replace(/[^0-9]/g,"");
   var imgData=document.getElementById("pa-f-img-data").value;
   if(!name){ alert("Falta nombre."); return; }
@@ -355,16 +356,12 @@ function openAdmin(){
   renderAdmin();
 }
 function initAdminBtn(){
-  var old=document.getElementById("patina-admin-btn"); if(old) old.remove();
+  if(document.getElementById("patina-admin-btn")) return;
   var b=document.createElement("button");
   b.id="patina-admin-btn"; b.textContent="Admin";
   b.setAttribute("aria-label","Admin");
-  // Estilos en línea: no los puede tapar el CSS de la HOME
-  b.style.cssText="position:fixed !important;left:50% !important;transform:translateX(-50%) !important;bottom:calc(8px + env(safe-area-inset-bottom)) !important;top:auto !important;right:auto !important;z-index:999999 !important;display:block !important;visibility:visible !important;opacity:1 !important;background:rgba(47,58,42,.92) !important;color:rgba(245,236,220,.9) !important;border:1px solid rgba(201,168,122,.4) !important;border-radius:999px !important;padding:5px 11px !important;font-size:10px !important;font-weight:600 !important;letter-spacing:.12em !important;backdrop-filter:blur(8px) !important;box-shadow:0 2px 10px rgba(0,0,0,.3) !important;cursor:pointer !important;pointer-events:auto !important;";
   b.onclick=openAdmin;
   document.body.appendChild(b);
-  // Reintento por si la HOME lo borra al renderizar
-  setTimeout(function(){ if(!document.getElementById("patina-admin-btn")) document.body.appendChild(b); }, 1500);
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", initAdminBtn);
 else initAdminBtn();
@@ -372,6 +369,6 @@ else initAdminBtn();
 window.__patinaAdmin = {getProducts: getProducts, toStoreFormat: toStoreFormat, fmtGs: fmtGs, calcDiscount: calcDiscount};
 })();
 
-(function(){var s=document.createElement('style');s.id='patina-admin-v14';s.textContent='\n#patina-admin-btn{position:fixed !important;top:12px !important;right:12px !important;left:auto !important;bottom:auto !important;transform:none !important;z-index:999999 !important;display:block !important;visibility:visible !important;opacity:1 !important;background:#F5ECDC !important;color:#121212 !important;border:1px solid #C9A87A !important;padding:8px 14px !important;font-size:12px !important;font-weight:700 !important;border-radius:999px !important;box-shadow:0 6px 18px rgba(0,0,0,.45) !important}\n';document.head.appendChild(s);})();
+(function(){var s=document.createElement('style');s.id='patina-admin-v16';s.textContent='\n.pa-form-v9{background:#2f3a2a !important;color:#F5ECDC !important;border:1px solid rgba(201,168,122,.45) !important}\n#patina-admin-overlay{position:fixed !important;inset:0 !important;display:none !important;align-items:center !important;justify-content:center !important;overflow:hidden !important;padding:12px !important;box-sizing:border-box !important}\n#patina-admin-overlay.open{display:flex !important}\n#patina-admin-overlay .pa-panel{margin:auto !important;max-height:88vh !important;overflow-y:auto !important;background:#2f3a2a !important;color:#F5ECDC !important}\n#patina-admin-overlay .pa-panel-v8{background:#2f3a2a !important}\n#patina-admin-overlay .pa-card{background:#263324 !important}\n#patina-login-overlay{position:fixed !important;inset:0 !important;display:flex !important;align-items:center !important;justify-content:center !important}\n#patina-admin-btn{position:fixed !important;left:50% !important;transform:translateX(-50%) !important;bottom:calc(8px + env(safe-area-inset-bottom)) !important;top:auto !important;right:auto !important;z-index:999999 !important;display:block !important;visibility:visible !important;opacity:1 !important;background:rgba(47,58,42,.92) !important;color:rgba(245,236,220,.9) !important;border:1px solid rgba(201,168,122,.4) !important;padding:5px 11px !important;font-size:10px !important;border-radius:999px !important}\n';document.head.appendChild(s);})();
 
-(function(){var s=document.createElement('style');s.id='patina-admin-v15';s.textContent='\n#patina-admin-btn{position:fixed !important;left:50% !important;transform:translateX(-50%) !important;bottom:calc(8px + env(safe-area-inset-bottom)) !important;top:auto !important;right:auto !important;z-index:999999 !important;display:block !important;visibility:visible !important;opacity:1 !important;background:rgba(47,58,42,.92) !important;color:rgba(245,236,220,.9) !important;border:1px solid rgba(201,168,122,.4) !important;padding:5px 11px !important;font-size:10px !important;font-weight:600 !important;letter-spacing:.12em !important;border-radius:999px !important;box-shadow:0 2px 10px rgba(0,0,0,.3) !important}\n#patina-admin-btn:hover{color:#F5ECDC !important;border-color:#C9A87A !important}\n';document.head.appendChild(s);})();
+document.addEventListener('click', function(e){ if(e.target && e.target.closest && e.target.closest('#patina-admin-overlay, #patina-login-overlay')){ e.stopPropagation(); } }, true);
