@@ -154,7 +154,7 @@ function ensureStyles(){
   if(document.getElementById("patina-admin-style")) return;
   var s=document.createElement("style"); s.id="patina-admin-style";
   s.textContent = `
-  #patina-admin-btn{position:fixed;left:0;right:0;margin-left:auto;margin-right:auto;bottom:20px;width:90px;text-align:center;z-index:2147483647 !important;display:block !important;background:#C9A87A !important;color:#121212 !important;padding:8px 14px;border-radius:999px;border:2px solid #F5ECDC;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.6)}
+  #patina-admin-btn{position:fixed;left:50%;transform:translateX(-50%);bottom:6px;z-index:9999;font-size:10px;letter-spacing:.12em;padding:5px 10px;border-radius:999px;background:rgba(18,18,18,.65);color:rgba(245,236,220,.55);border:1px solid rgba(201,168,122,.25);backdrop-filter:blur(8px);cursor:pointer}
   #patina-admin-btn:hover{color:#F5ECDC;border-color:#C9A87A}
   #patina-admin-overlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);display:none;overflow:auto}
   #patina-admin-overlay.open{display:block}
@@ -368,5 +368,18 @@ else initAdminBtn();
 window.__patinaAdmin = {getProducts: getProducts, toStoreFormat: toStoreFormat, fmtGs: fmtGs, calcDiscount: calcDiscount};
 })();
 
-// FIX v3 centrado sin transform
-(function(){var s=document.createElement('style');s.textContent='#patina-admin-btn{left:0 !important;right:0 !important;margin-left:auto !important;margin-right:auto !important;transform:none !important;bottom:20px !important;width:90px !important;text-align:center !important}';document.head.appendChild(s);})();
+// FIX v4 discreto - sin tapar footer, sin scroll
+(function(){var s=document.createElement('style');s.id='patina-admin-discreet-fix';s.textContent='\n/* PÁTINA Admin - botón discreto abajo, sin tapar footer, sin scroll */\n#patina-admin-btn{position:fixed;left:0;right:0;margin-left:auto;margin-right:auto;bottom:3px;width:auto;max-width:70px;text-align:center;z-index:2147483647 !important;display:block !important;visibility:visible !important;opacity:1 !important;background:rgba(18,18,18,.55) !important;color:rgba(245,236,220,.50) !important;border:1px solid rgba(201,168,122,.22) !important;box-shadow:none !important;padding:3px 8px !important;border-radius:999px !important;font-size:9px !important;letter-spacing:.14em !important;font-weight:500 !important;transform:none !important;backdrop-filter:blur(6px)}\n#patina-admin-btn:hover{color:rgba(245,236,220,.85) !important;border-color:rgba(201,168,122,.45) !important}\n/* Espacio para que el botón no tape el footer: subimos los textos un poco */\nbody{padding-bottom:0 !important}\nfooter, .pt-8.text-center, [class*="footer"]{padding-bottom:26px !important}\n/* Cuando el Admin está abierto, esconder el botón para que no tape el panel */\nbody.patina-admin-open #patina-admin-btn{display:none !important}\n';document.head.appendChild(s);
+// Ocultar botón cuando Admin abierto, mostrar al cerrar
+var _origRender = window.__paFilter;
+document.addEventListener('click', function(e){
+  if(e.target && e.target.closest && e.target.closest('#patina-admin-btn')){ document.body.classList.add('patina-admin-open'); }
+  if(e.target && e.target.closest && e.target.closest('.pa-panel button')){ 
+    var t=e.target.textContent||'';
+    if(t.indexOf('Cerrar')!==-1){ setTimeout(function(){ document.body.classList.remove('patina-admin-open'); },100); }
+  }
+}, true);
+})();
+
+// Si overlay está abierto, ocultar botón
+setInterval(function(){var ov=document.getElementById('patina-admin-overlay'); if(ov && ov.classList.contains('open')){ document.body.classList.add('patina-admin-open'); } else { document.body.classList.remove('patina-admin-open'); } }, 500);
