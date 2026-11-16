@@ -173,34 +173,42 @@ function ensureStyles(){
   `;
   document.head.appendChild(s);
 }
-function renderAdmin(){ window.renderAdmin = renderAdmin; 
+function renderAdmin(){
+  window.renderAdmin = renderAdmin;
   ensureStyles();
   var ov=document.getElementById("patina-admin-overlay");
   if(!ov){ ov=document.createElement("div"); ov.id="patina-admin-overlay"; document.body.appendChild(ov); }
   var list=getProducts();
-  var html = '<div class="pa-panel">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center"><h2>PÁTINA — Admin</h2><button class="pa-btn-ghost" onclick="document.getElementById(\'patina-admin-overlay\').classList.remove(\'open\')">Cerrar ✕</button></div>'
-    + '<p class="pa-small">Productos actuales: '+list.length+' · Sincroniza cada 15s con Google Apps Script si hay URL configurada. Si no hay URL, guarda en este navegador (localStorage).</p>'
-    + '<div class="pa-row" style="margin:10px 0"><input id="pa-search" placeholder="🔍 Buscar por nombre..." oninput="window.__paFilter(this.value)"><button class="pa-btn" onclick="window.__paNew()">+ Agregar</button></div>'
-    + '<div class="pa-row" style="margin-bottom:12px"><button class="pa-btn-ghost" onclick="window.__paBackup()">⬇ Backup</button><label class="pa-btn-ghost" style="text-align:center;cursor:pointer">⬆ Importar Backup<input type="file" accept=".json" style="display:none" onchange="window.__paImport(event)"></label><button class="pa-btn-ghost" onclick="window.__paChangePw()">🔑 Cambiar contraseña</button><button class="pa-btn-ghost" onclick="window.__paConfigGAS()">⚙️ Configurar GAS URL</button></div>'
+  var html = '<div class="pa-panel pa-panel-v8">'
+    + '<div class="pa-head"><h2>Productos</h2>'
+    + '<div class="pa-head-btns">'
+    + '<button class="pa-btn-ghost pa-mini" onclick="window.__paChangePw()">\uD83D\uDD11 Cambiar contraseña</button>'
+    + '<button class="pa-btn pa-mini" onclick="document.getElementById(\'patina-admin-overlay\').classList.remove(\'open\');document.body.classList.remove(\'patina-admin-open\')">\u2190 Volver a tienda</button>'
+    + '<button class="pa-btn pa-mini pa-add" onclick="window.__paNew()">+ Agregar</button>'
+    + '</div></div>'
+    + '<p class="pa-sub">Lista de productos de la tienda. Toc\u00e1 Editar o Borrar, o agreg\u00e1 uno nuevo.</p>'
+    + '<p class="pa-sub pa-green">\u2022 Base compartida: conectada - todos ven lo mismo</p>'
+    + '<div class="pa-search-row"><input id="pa-search" placeholder="\uD83D\uDD0D Buscar producto..." oninput="window.__paFilter(this.value)"></div>'
     + '<div id="pa-form-wrap"></div>'
     + '<div id="pa-list"></div>'
-    + '<div style="margin-top:16px"><h3 style="font-size:14px">Historial</h3><div id="pa-history" style="font-size:12px;opacity:.85"></div></div>'
-    + '<p class="pa-small" style="margin-top:12px">Prueba: crear producto sin descripción, precio 105000, descuento 85000 → debe mostrar sin descripción, Gs 105.000 tachado, Gs 85.000, -19% OFF, Ahorrás Gs 20.000</p>'
+    + '<div class="pa-foot-btns"><button class="pa-btn-ghost pa-mini" onclick="window.__paBackup()">\u2B07 Respaldo</button><button class="pa-btn-ghost pa-mini" onclick="window.__paShowHistory()">\u231A Historial</button><button class="pa-btn-ghost pa-mini" onclick="window.__paConfigGAS()">\u2699\uFE0F GAS URL</button></div>'
+    + '<div id="pa-history" style="display:none"></div>'
     + '</div>';
-  ov.innerHTML=html; ov.classList.add("open");
-  renderList(""); renderHistory();
+  ov.innerHTML=html; ov.classList.add("open"); document.body.classList.add("patina-admin-open");
+  renderList(""); 
 }
 function renderList(filter){
   var list=getProducts();
   if(filter) list=list.filter(function(p){ return cleanStr(p.name).toLowerCase().indexOf(filter.toLowerCase())!==-1; });
   var el=document.getElementById("pa-list"); if(!el) return;
-  if(list.length===0){ el.innerHTML='<p class="pa-small">No hay productos. Si es primera vez, se cargan desde la página actual. Si ves vacío, recargá con Ctrl+F5.</p>'; return; }
+  if(list.length===0){ el.innerHTML='<p class="pa-small">No hay productos. Recarg\u00e1 con Ctrl+F5.</p>'; return; }
   el.innerHTML=list.map(function(p){
     var st=toStoreFormat(p);
-    var priceLine = st.hasDiscount ? '<s>'+fmtGs(st.price)+'</s> <b>'+fmtGs(st.salePrice)+'</b> <span style="color:#C9A87A">-'+st.discount.replace(/[^0-9]/g,"")+'% OFF · Ahorrás '+fmtGs(st.saving)+'</span>' : '<b>'+fmtGs(st.price)+'</b>';
-    var img = p.img ? '<img src="'+p.img+'">' : '<div style="width:64px;height:48px;background:#222;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px">Sin foto</div>';
-    return '<div class="pa-card">'+img+'<div style="flex:1"><b>'+(p.name||"")+'</b><div class="pa-small">#'+p.id+' · '+(p.category||"")+' · Stock: '+(p.stock===""?"Sin límite":p.stock)+' · '+(isEmptyVal(p.desc)?"Sin descripción":"Con descripción")+'</div><div style="font-size:13px">'+priceLine+'</div></div><div style="display:flex;gap:6px;flex-direction:column"><button class="pa-btn" onclick="window.__paEdit(\''+p.id+'\')">Editar</button><button class="pa-btn-danger" onclick="window.__paDelete(\''+p.id+'\')">Eliminar</button></div></div>';
+    var priceLine = st.hasDiscount ? (fmtGs(st.price)+' - Oferta '+fmtGs(st.salePrice)+' (-'+st.discount.replace(/[^0-9]/g,"")+'%)') : fmtGs(st.price);
+    var stockTxt = (p.stock===""||p.stock==null) ? "" : (" \u00b7 Quedan "+p.stock);
+    var initial = (p.name||"P").charAt(0).toUpperCase();
+    var imgHtml = p.img ? '<img src="'+p.img+'">' : '<div class="pa-thumb">'+initial+'</div>';
+    return '<div class="pa-card pa-card-v8">'+imgHtml+'<div class="pa-info"><b>'+(p.name||"")+'</b><div class="pa-meta">'+(p.category||"")+' - '+priceLine+stockTxt+'</div></div><div class="pa-actions"><button class="pa-btn-ghost pa-action" onclick="window.__paEdit(\''+p.id+'\')">Editar</button><button class="pa-btn-ghost pa-action pa-del" onclick="window.__paDelete(\''+p.id+'\')">Borrar</button></div></div>';
   }).join("");
 }
 function renderHistory(){
@@ -398,3 +406,5 @@ try{ if(typeof renderAdmin!=='undefined') window.renderAdmin = renderAdmin; }cat
 (function(){var s=document.createElement('style');s.id='patina-admin-v6';s.textContent='\n/* FIX v6 - Botón Admin QUIETO abajo, NO fijo en pantalla */\n#patina-admin-btn{position:absolute !important;left:0 !important;right:0 !important;margin-left:auto !important;margin-right:auto !important;top:auto !important;bottom:3px !important;transform:none !important}\nbody{position:relative !important;padding-bottom:26px !important;min-height:100dvh}\nhtml{position:relative}\n';document.head.appendChild(s);})();
 
 window.addEventListener('patina-open-admin', function(){ try{ if(window.renderAdmin) window.renderAdmin(); }catch(e){} });
+
+(function(){var s=document.createElement('style');s.id='patina-admin-v8';s.textContent='\n.pa-panel-v8{width:calc(100% - 24px) !important;max-width:620px !important;margin:12px auto !important;padding:16px !important;border-radius:22px !important;box-sizing:border-box !important;overflow:hidden}\n.pa-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px}\n.pa-head h2{font-size:21px !important;margin:0 !important}\n.pa-head-btns{display:flex;gap:6px;flex-wrap:wrap}\n.pa-mini{padding:7px 11px !important;font-size:12px !important;white-space:nowrap}\n.pa-add{background:#b98a5a !important;color:#fff !important;border:none !important}\n.pa-sub{font-size:12px !important;line-height:1.4 !important;margin:2px 0 !important;color:rgba(18,18,18,.65) !important}\n.pa-green{color:#2f6b2f !important;font-size:11.5px !important}\n.pa-search-row{margin:12px 0 10px}\n.pa-search-row input{width:100% !important;box-sizing:border-box !important}\n.pa-card-v8{display:flex !important;gap:10px !important;align-items:center !important;padding:10px !important;border-radius:14px !important;box-sizing:border-box !important}\n.pa-card-v8 img,.pa-thumb{width:52px !important;height:52px !important;min-width:52px !important;border-radius:10px !important;object-fit:cover !important}\n.pa-thumb{background:#E8DDC8 !important;color:#8a6b3a !important;display:flex !important;align-items:center !important;justify-content:center !important;font-size:20px !important;font-weight:700 !important}\n.pa-info{flex:1 !important;min-width:0 !important;overflow:hidden}\n.pa-info b{font-size:14px !important;line-height:1.25 !important;display:block !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}\n.pa-meta{font-size:11.5px !important;line-height:1.35 !important;color:rgba(18,18,18,.62) !important;white-space:normal !important;word-break:break-word !important}\n.pa-actions{display:flex !important;flex-direction:column !important;gap:6px !important;flex-shrink:0 !important}\n.pa-action{padding:6px 10px !important;font-size:12px !important;white-space:nowrap}\n.pa-del{color:#8a3a2a !important;border-color:rgba(138,58,42,.35) !important}\n.pa-foot-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}\n#patina-admin-overlay .pa-panel input,#patina-admin-overlay .pa-panel select{box-sizing:border-box !important}\n#patina-admin-overlay{padding:0 !important}\n';document.head.appendChild(s);})();
