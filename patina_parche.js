@@ -62,7 +62,7 @@ function toStoreFormat(p){
     saving: d.has ? d.saving : 0,
     hasDiscount: d.has,
     desc: isEmptyVal(p.desc) ? WJ : String(p.desc),
-    badge: d.has ? ("-"+d.pct+"% OFF") : WJ,
+    badge: isEmptyVal(p.badge) ? WJ : String(p.badge),
     stock: (p.stock==null||String(p.stock).trim()==="") ? "" : String(p.stock),
     img: p.img||"",
     waText: p.waText||""
@@ -154,20 +154,20 @@ function ensureStyles(){
   if(document.getElementById("patina-admin-style")) return;
   var s=document.createElement("style"); s.id="patina-admin-style";
   s.textContent = `
-  #patina-admin-btn{position:fixed;left:50%;transform:translateX(-50%);bottom:10px;z-index:99999;font-size:11px;letter-spacing:.12em;padding:7px 14px;border-radius:999px;background:#2f3a2a;color:#F5ECDC;border:1px solid rgba(201,168,122,.65);backdrop-filter:blur(8px);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);opacity:1 !important;display:block !important;visibility:visible !important}
+  #patina-admin-btn{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom));z-index:999999;background:rgba(47,58,42,.92);color:rgba(245,236,220,.9);border:1px solid rgba(201,168,122,.4);border-radius:999px;padding:5px 11px;font-size:10px;font-weight:600}
   #patina-admin-btn:hover{color:#F5ECDC;border-color:#C9A87A}
   #patina-admin-overlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);display:none;overflow:auto}
   #patina-admin-overlay.open{display:block}
-  .pa-panel{max-width:760px;margin:24px auto;background:#2f3a2a;color:#F5ECDC;border:1px solid rgba(201,168,122,.35);border-radius:18px;padding:18px}
+  .pa-panel{max-width:760px;margin:24px auto;background:#121212;color:#F5ECDC;border:1px solid rgba(201,168,122,.35);border-radius:18px;padding:18px}
   .pa-panel h2{font-size:20px;letter-spacing:.08em;margin:0 0 4px}
-  .pa-panel input,.pa-panel select,.pa-panel textarea{width:100%;background:#263324;color:#F5ECDC;border:1px solid rgba(245,236,220,.18);border-radius:10px;padding:10px 12px;font-size:14px;box-sizing:border-box}
+  .pa-panel input,.pa-panel select,.pa-panel textarea{width:100%;background:#1e1e1e;color:#F5ECDC;border:1px solid rgba(245,236,220,.18);border-radius:10px;padding:10px 12px;font-size:14px;box-sizing:border-box}
   .pa-btn{background:#F5ECDC;color:#121212;border:none;border-radius:999px;padding:10px 16px;font-size:13px;cursor:pointer;font-weight:600}
   .pa-btn-ghost{background:transparent;color:#F5ECDC;border:1px solid rgba(245,236,220,.35);border-radius:999px;padding:10px 16px;cursor:pointer}
   .pa-btn-danger{background:#7a2a2a;color:#fff;border:none;border-radius:999px;padding:8px 12px;cursor:pointer}
   .pa-row{display:flex;gap:10px;flex-wrap:wrap}.pa-row>*{flex:1;min-width:140px}
-  .pa-card{background:#263324;border:1px solid rgba(245,236,220,.12);border-radius:12px;padding:12px;display:flex;gap:12px;align-items:center}
+  .pa-card{background:#1a1a1a;border:1px solid rgba(245,236,220,.12);border-radius:12px;padding:12px;display:flex;gap:12px;align-items:center}
   .pa-card img{width:64px;height:48px;object-fit:cover;border-radius:8px;background:#222}
-  .pa-preview{font-size:13px;background:#263324;border-radius:12px;padding:12px;line-height:1.5}
+  .pa-preview{font-size:13px;background:#1e1e1e;border-radius:12px;padding:12px;line-height:1.5}
   .pa-preview s{opacity:.6}
   .pa-small{font-size:11px;opacity:.7}
   `;
@@ -200,7 +200,7 @@ function renderList(filter){
     var st=toStoreFormat(p);
     var priceLine = st.hasDiscount ? '<s>'+fmtGs(st.price)+'</s> <b>'+fmtGs(st.salePrice)+'</b> <span style="color:#C9A87A">-'+st.discount.replace(/[^0-9]/g,"")+'% OFF · Ahorrás '+fmtGs(st.saving)+'</span>' : '<b>'+fmtGs(st.price)+'</b>';
     var img = p.img ? '<img src="'+p.img+'">' : '<div style="width:64px;height:48px;background:#222;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px">Sin foto</div>';
-    return '<div class="pa-card">'+img+'<div style="flex:1"><b>'+(p.name||"")+'</b><div class="pa-small">#'+p.id+' · '+(p.category||"")+' · Stock: '+(p.stock===""?"Sin límite":p.stock)+' · '+(isEmptyVal(p.desc)?"Sin descripción":"Con descripción")+'</div><div style="font-size:13px">'+priceLine+'</div></div><div style="display:flex;gap:6px;flex-direction:column"><button class="pa-btn" onclick="event.stopPropagation();window.__paEdit(\''+p.id+'\')">Editar</button><button class="pa-btn-danger" onclick="event.stopPropagation();window.__paDelete(\''+p.id+'\')">Eliminar</button></div></div>';
+    return '<div class="pa-card">'+img+'<div style="flex:1"><b>'+(p.name||"")+'</b><div class="pa-small">#'+p.id+' · '+(p.category||"")+' · Stock: '+(p.stock===""?"Sin límite":p.stock)+' · '+(isEmptyVal(p.desc)?"Sin descripción":"Con descripción")+'</div><div style="font-size:13px">'+priceLine+'</div></div><div style="display:flex;gap:6px;flex-direction:column"><button class="pa-btn" onclick="window.__paEdit(\''+p.id+'\')">Editar</button><button class="pa-btn-danger" onclick="window.__paDelete(\''+p.id+'\')">Eliminar</button></div></div>';
   }).join("");
 }
 function renderHistory(){
@@ -213,26 +213,29 @@ function renderHistory(){
 function openForm(prod){
   var wrap=document.getElementById("pa-form-wrap"); if(!wrap) return;
   var isNew=!prod;
-  var p = prod ? toDisplay(prod) : {id:"", name:"", category:"cartera", price:"", salePrice:"", desc:"", stock:"", img:""};
+  var p = prod ? toDisplay(prod) : {id:"", name:"", category:"cartera", price:"", salePrice:"", desc:"", badge:"", stock:"", img:""};
+  // Generar ID si es nuevo: siguiente número
   if(isNew){ var all=getProducts(); var max=0; all.forEach(function(x){ var n=parseInt(x.id,10); if(!isNaN(n)&&n>max) max=n; }); p.id=String(max+1).padStart(4,"0"); }
-  wrap.innerHTML = '<div class="pa-form-v9">'
-    + '<h3>'+(isNew?"Agregar producto":"Editar - "+(p.name||""))+'</h3>'
-    + '<div class="pa-f-row"><div class="pa-f-field"><label>Nombre</label><input id="pa-f-name" value="'+(p.name||"").replace(/"/g,"&quot;")+'"></div><div class="pa-f-field"><label>Categoria</label><select id="pa-f-cat"><option value="cartera" '+(p.category==="cartera"?"selected":"")+'>cartera</option><option value="accesorio" '+(p.category==="accesorio"||p.category==="accesorios"?"selected":"")+'>accesorio</option><option value="oferta" '+(p.category==="oferta"?"selected":"")+'>oferta</option><option value="todos" '+(p.category==="todos"?"selected":"")+'>todos</option></select></div></div>'
-    + '<div class="pa-f-row"><div class="pa-f-field"><label>Precio (solo numeros, sin puntos) Ej: 105000</label><input id="pa-f-price" inputmode="numeric" value="'+(p.price||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,'');window.__paPreview()"></div><div class="pa-f-field"><label>Precio con descuento (vacio = sin descuento)</label><input id="pa-f-sale" inputmode="numeric" value="'+(p.salePrice||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,'');window.__paPreview()"></div></div>'
-    + '<div class="pa-f-field"><label>Descripcion (vacio = queda en blanco de verdad)</label><textarea id="pa-f-desc" rows="3">'+(p.desc||"")+'</textarea></div>'
-    + '<div class="pa-f-field"><label>Stock / Unidades (vacio = sin limite)</label><input id="pa-f-stock" inputmode="numeric" value="'+(p.stock||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>'
-    + '<p style="font-size:11px;color:rgba(245,236,220,.65);margin:0 0 10px">El % OFF y la burbuja -% se calculan solos desde el descuento. Ej: 105000 / 85000 = -19% OFF, Ahorras Gs 20.000. Precio exacto, sin 995.</p>'
-    + '<div class="pa-f-field"><label>Foto - se recorta a 4:3 sin deformar</label><input type="file" id="pa-f-img" accept="image/*" onchange="window.__paCropImage(event)"><div id="pa-img-preview">'+(p.img?'<img src="'+p.img+'" style="width:120px;height:90px;object-fit:cover;border-radius:10px;margin-top:8px">':"")+'</div><input type="hidden" id="pa-f-img-data" value="'+(p.img||"")+'"></div>'
-    + '<div id="pa-preview" class="pa-preview-v9"></div>'
-    + '<div class="pa-f-actions"><button class="pa-btn-v9 pa-save" onclick="window.__paSave(''+p.id+'','+(isNew?"true":"false")+')">Guardar</button><button class="pa-btn-v9 pa-cancel" onclick="document.getElementById('pa-form-wrap').innerHTML=''">Cancelar</button></div>'
+  wrap.innerHTML = '<div style="background:#1e1e1e;border:1px solid rgba(201,168,122,.3);border-radius:14px;padding:14px;margin-bottom:14px">'
+    + '<h3 style="margin:0 0 10px;font-size:16px">'+(isNew?"Agregar producto":"Editar — "+(p.name||""))+'</h3>'
+    + '<div class="pa-row"><div><label class="pa-small">Nombre</label><input id="pa-f-name" value="'+(p.name||"").replace(/"/g,"&quot;")+'"></div><div><label class="pa-small">Categoría</label><select id="pa-f-cat"><option value="cartera" '+(p.category==="cartera"?"selected":"")+'>cartera</option><option value="accesorio" '+(p.category==="accesorio"||p.category==="accesorios"?"selected":"")+'>accesorio</option><option value="oferta" '+(p.category==="oferta"?"selected":"")+'>oferta</option><option value="todos" '+(p.category==="todos"?"selected":"")+'>todos</option></select></div></div>'
+    + '<div class="pa-row" style="margin-top:8px"><div><label class="pa-small">Precio (solo números, sin puntos) Ej: 105000</label><input id="pa-f-price" inputmode="numeric" value="'+(p.price||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,\'\');window.__paPreview()"></div><div><label class="pa-small">Precio con descuento (vacío = sin descuento)</label><input id="pa-f-sale" inputmode="numeric" value="'+(p.salePrice||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,\'\');window.__paPreview()"></div></div>'
+    + '<div style="margin-top:8px"><label class="pa-small">Descripción (vacío = queda en blanco de verdad)</label><textarea id="pa-f-desc" rows="3">'+(p.desc||"")+'</textarea></div>'
+    + '<div class="pa-row" style="margin-top:8px"><div><label class="pa-small">Etiqueta / Badge (vacío = sin badge)</label><input id="pa-f-badge" value="'+(p.badge||"")+'"></div><div><label class="pa-small">Stock / Unidades (vacío = sin límite)</label><input id="pa-f-stock" inputmode="numeric" value="'+(p.stock||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')"></div></div>'
+    + '<div style="margin-top:10px"><label class="pa-small">Foto — se recorta a 4:3 sin deformar</label><input type="file" id="pa-f-img" accept="image/*" onchange="window.__paCropImage(event)"><div id="pa-img-preview" style="margin-top:8px">'+(p.img?'<img src="'+p.img+'" style="width:120px;height:90px;object-fit:cover;border-radius:8px">':"")+'</div><input type="hidden" id="pa-f-img-data" value="'+(p.img||"")+'"></div>'
+    + '<div id="pa-preview" class="pa-preview" style="margin-top:10px"></div>'
+    + '<div style="display:flex;gap:8px;margin-top:12px"><button class="pa-btn" onclick="window.__paSave(\''+p.id+'\','+(isNew?"true":"false")+')">Guardar</button><button class="pa-btn-ghost" onclick="document.getElementById(\'pa-form-wrap\').innerHTML=\'\'">Cancelar</button></div>'
     + '</div>';
   window.__paPreview();
+  // guardar id en dataset
   wrap.dataset.editId = p.id;
+  wrap.dataset.isNew = isNew ? "1":"0";
+  wrap.dataset.origImg = p.img||"";
 }
 window.__paFilter=function(v){ renderList(v); };
 window.__paNew=function(){ openForm(null); };
-window.__paEdit=function(id, ev){ if(ev && ev.stopPropagation) ev.stopPropagation(); var p=getProducts().find(function(x){ return String(x.id)===String(id); }); if(p) openForm(p); };
-window.__paDelete=function(id, ev){ if(ev && ev.stopPropagation) ev.stopPropagation();
+window.__paEdit=function(id){ var p=getProducts().find(function(x){ return String(x.id)===String(id); }); if(p) openForm(p); };
+window.__paDelete=function(id){
   var p=getProducts().find(function(x){ return String(x.id)===String(id); });
   if(!p) return;
   if(!confirm("¿Eliminar '"+p.name+"' ? Esta acción queda en historial.")) return;
@@ -279,7 +282,7 @@ window.__paSave=function(id, isNew){
   var priceRaw=document.getElementById("pa-f-price").value.replace(/[^0-9]/g,"");
   var saleRaw=document.getElementById("pa-f-sale").value.replace(/[^0-9]/g,"");
   var desc=document.getElementById("pa-f-desc").value; // NO trim forzado: si vacío queda WJ en toStoreFormat
-  var badge="";
+  var badge=document.getElementById("pa-f-badge").value;
   var stock=document.getElementById("pa-f-stock").value.replace(/[^0-9]/g,"");
   var imgData=document.getElementById("pa-f-img-data").value;
   if(!name){ alert("Falta nombre."); return; }
@@ -352,12 +355,16 @@ function openAdmin(){
   renderAdmin();
 }
 function initAdminBtn(){
-  if(document.getElementById("patina-admin-btn")) return;
+  var old=document.getElementById("patina-admin-btn"); if(old) old.remove();
   var b=document.createElement("button");
   b.id="patina-admin-btn"; b.textContent="Admin";
   b.setAttribute("aria-label","Admin");
+  // Estilos en línea: no los puede tapar el CSS de la HOME
+  b.style.cssText="position:fixed !important;left:50% !important;transform:translateX(-50%) !important;bottom:calc(8px + env(safe-area-inset-bottom)) !important;top:auto !important;right:auto !important;z-index:999999 !important;display:block !important;visibility:visible !important;opacity:1 !important;background:rgba(47,58,42,.92) !important;color:rgba(245,236,220,.9) !important;border:1px solid rgba(201,168,122,.4) !important;border-radius:999px !important;padding:5px 11px !important;font-size:10px !important;font-weight:600 !important;letter-spacing:.12em !important;backdrop-filter:blur(8px) !important;box-shadow:0 2px 10px rgba(0,0,0,.3) !important;cursor:pointer !important;pointer-events:auto !important;";
   b.onclick=openAdmin;
   document.body.appendChild(b);
+  // Reintento por si la HOME lo borra al renderizar
+  setTimeout(function(){ if(!document.getElementById("patina-admin-btn")) document.body.appendChild(b); }, 1500);
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", initAdminBtn);
 else initAdminBtn();
@@ -365,16 +372,6 @@ else initAdminBtn();
 window.__patinaAdmin = {getProducts: getProducts, toStoreFormat: toStoreFormat, fmtGs: fmtGs, calcDiscount: calcDiscount};
 })();
 
-(function(){var s=document.createElement('style');s.id='patina-admin-v10';s.textContent='\n#patina-admin-overlay{position:fixed !important;inset:0 !important;display:none !important;align-items:center !important;justify-content:center !important;overflow:hidden !important;padding:12px !important;box-sizing:border-box !important}\n#patina-admin-overlay.open{display:flex !important}\n#patina-admin-overlay .pa-panel-v8{margin:auto !important;max-height:88vh !important;overflow-y:auto !important;overscroll-behavior:contain}\n#patina-login-overlay{position:fixed !important;inset:0 !important;display:flex !important;align-items:center !important;justify-content:center !important;overflow:hidden !important}\nbody.patina-admin-open{overflow:hidden !important}\n';document.head.appendChild(s);})();
+(function(){var s=document.createElement('style');s.id='patina-admin-v14';s.textContent='\n#patina-admin-btn{position:fixed !important;top:12px !important;right:12px !important;left:auto !important;bottom:auto !important;transform:none !important;z-index:999999 !important;display:block !important;visibility:visible !important;opacity:1 !important;background:#F5ECDC !important;color:#121212 !important;border:1px solid #C9A87A !important;padding:8px 14px !important;font-size:12px !important;font-weight:700 !important;border-radius:999px !important;box-shadow:0 6px 18px rgba(0,0,0,.45) !important}\n';document.head.appendChild(s);})();
 
-document.addEventListener('click', function(e){ if(e.target && e.target.closest && e.target.closest('#patina-admin-overlay, #patina-login-overlay')){ e.stopPropagation(); } }, true);
-
-(function(){var s=document.createElement('style');s.id='patina-admin-v11';s.textContent='\n.pa-form-v9{background:#2f3a2a !important;color:#F5ECDC !important;border:1px solid rgba(201,168,122,.35) !important;border-radius:18px !important;padding:16px !important;margin:12px 0 !important;box-sizing:border-box !important}\n.pa-form-v9 h3{margin:0 0 14px !important;font-family:Georgia,serif !important;font-size:18px !important;color:#F5ECDC !important}\n.pa-f-row{display:flex !important;gap:10px !important;flex-wrap:wrap !important}\n.pa-f-field{flex:1 !important;min-width:140px !important;margin-bottom:10px !important}\n.pa-f-field label{display:block !important;font-size:11px !important;color:rgba(245,236,220,.75) !important;margin-bottom:6px !important;text-transform:uppercase !important;letter-spacing:.06em}\n.pa-form-v9 input,.pa-form-v9 select,.pa-form-v9 textarea{width:100% !important;box-sizing:border-box !important;background:rgba(245,236,220,.92) !important;color:#121212 !important;border:none !important;border-radius:999px !important;padding:11px 14px !important;font-size:14px !important}\n.pa-form-v9 textarea{border-radius:14px !important}\n.pa-form-v9 input[type="file"]{background:rgba(245,236,220,.15) !important;color:#F5ECDC !important}\n.pa-preview-v9{background:rgba(245,236,220,.10) !important;color:#F5ECDC !important;border:1px solid rgba(201,168,122,.25) !important;border-radius:12px !important;padding:11px !important;font-size:13px !important;margin-top:10px !important}\n.pa-f-actions{display:flex !important;gap:10px !important;margin-top:14px !important}\n.pa-btn-v9{flex:1 !important;border:none !important;border-radius:999px !important;padding:12px !important;font-size:14px !important;font-weight:700 !important;cursor:pointer !important;transition:transform .15s !important}\n.pa-btn-v9:hover{transform:scale(1.03) !important} .pa-btn-v9:active{transform:scale(.97) !important}\n.pa-save{background:rgba(245,236,220,.92) !important;color:#121212 !important}\n.pa-cancel{background:transparent !important;color:#F5ECDC !important;border:1px solid rgba(245,236,220,.35) !important}\n#patina-admin-overlay{position:fixed !important;inset:0 !important;display:none !important;align-items:center !important;justify-content:center !important;overflow:hidden !important;padding:12px !important;box-sizing:border-box !important}\n#patina-admin-overlay.open{display:flex !important}\n#patina-admin-overlay .pa-panel{margin:auto !important;max-height:88vh !important;overflow-y:auto !important}\n#patina-admin-overlay .pa-panel-v8{margin:auto !important;max-height:88vh !important;overflow-y:auto !important}\n#patina-login-overlay{position:fixed !important;inset:0 !important;display:flex !important;align-items:center !important;justify-content:center !important}\nbody.patina-admin-open{overflow:hidden !important}\n#patina-admin-overlay .pa-btn,#patina-admin-overlay .pa-btn-ghost,#patina-admin-overlay .pa-action{transition:transform .15s !important}\n#patina-admin-overlay .pa-btn:active,#patina-admin-overlay .pa-btn-ghost:active{transform:scale(.97) !important}\n';document.head.appendChild(s);})();
-
-document.addEventListener('click', function(e){ if(e.target && e.target.closest && e.target.closest('#patina-admin-overlay, #patina-login-overlay')){ e.stopPropagation(); } }, true);
-
-(function(){var s=document.createElement('style');s.id='patina-admin-v12';s.textContent='\n.pa-form-v9{background:#2f3a2a !important;color:#F5ECDC !important;border:1px solid rgba(201,168,122,.45) !important}\n#patina-admin-overlay .pa-panel,#patina-admin-overlay .pa-panel-v8{background:#2f3a2a !important;color:#F5ECDC !important;border:1px solid rgba(201,168,122,.45) !important}\n#patina-admin-overlay .pa-card{background:#263324 !important;border:1px solid rgba(245,236,220,.12) !important}\n#patina-admin-overlay .pa-preview,.pa-preview-v9{background:rgba(38,51,36,.85) !important;color:#F5ECDC !important}\n.pa-form-v9 input,.pa-form-v9 select,.pa-form-v9 textarea{background:rgba(245,236,220,.92) !important;color:#121212 !important}\n';document.head.appendChild(s);})();
-
-(function(){var s=document.createElement('style');s.id='patina-admin-v13';s.textContent='\n#patina-admin-btn{display:block !important;visibility:visible !important;opacity:1 !important;position:fixed !important;left:50% !important;transform:translateX(-50%) !important;bottom:10px !important;z-index:99999 !important;background:#2f3a2a !important;color:#F5ECDC !important;border:1px solid rgba(201,168,122,.7) !important;padding:7px 14px !important;font-size:11px !important;border-radius:999px !important;box-shadow:0 4px 14px rgba(0,0,0,.4) !important;pointer-events:auto !important}\n#patina-admin-btn:hover{transform:translateX(-50%) scale(1.05) !important}\n';document.head.appendChild(s);})();
-
-window.addEventListener('load', function(){ setTimeout(function(){ try{ if(!document.getElementById('patina-admin-btn')){ var b=document.createElement('button'); b.id='patina-admin-btn'; b.textContent='Admin'; b.onclick=function(){ window.__paOpenAdmin && window.__paOpenAdmin(); }; document.body.appendChild(b); } }catch(e){} }, 800); });
+(function(){var s=document.createElement('style');s.id='patina-admin-v15';s.textContent='\n#patina-admin-btn{position:fixed !important;left:50% !important;transform:translateX(-50%) !important;bottom:calc(8px + env(safe-area-inset-bottom)) !important;top:auto !important;right:auto !important;z-index:999999 !important;display:block !important;visibility:visible !important;opacity:1 !important;background:rgba(47,58,42,.92) !important;color:rgba(245,236,220,.9) !important;border:1px solid rgba(201,168,122,.4) !important;padding:5px 11px !important;font-size:10px !important;font-weight:600 !important;letter-spacing:.12em !important;border-radius:999px !important;box-shadow:0 2px 10px rgba(0,0,0,.3) !important}\n#patina-admin-btn:hover{color:#F5ECDC !important;border-color:#C9A87A !important}\n';document.head.appendChild(s);})();
