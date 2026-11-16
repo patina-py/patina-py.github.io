@@ -154,7 +154,7 @@ function ensureStyles(){
   if(document.getElementById("patina-admin-style")) return;
   var s=document.createElement("style"); s.id="patina-admin-style";
   s.textContent = `
-  #patina-admin-btn{position:fixed;left:50%;transform:translateX(-50%);bottom:6px;z-index:9999;font-size:10px;letter-spacing:.12em;padding:5px 10px;border-radius:999px;background:rgba(18,18,18,.65);color:rgba(245,236,220,.55);border:1px solid rgba(201,168,122,.25);backdrop-filter:blur(8px);cursor:pointer}
+  #patina-admin-btn{position:fixed;left:50%;transform:translateX(-50%);bottom:10px;z-index:99999;font-size:11px;letter-spacing:.12em;padding:7px 14px;border-radius:999px;background:#2f3a2a;color:#F5ECDC;border:1px solid rgba(201,168,122,.65);backdrop-filter:blur(8px);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);opacity:1 !important;display:block !important;visibility:visible !important}
   #patina-admin-btn:hover{color:#F5ECDC;border-color:#C9A87A}
   #patina-admin-overlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);display:none;overflow:auto}
   #patina-admin-overlay.open{display:block}
@@ -374,3 +374,7 @@ document.addEventListener('click', function(e){ if(e.target && e.target.closest 
 document.addEventListener('click', function(e){ if(e.target && e.target.closest && e.target.closest('#patina-admin-overlay, #patina-login-overlay')){ e.stopPropagation(); } }, true);
 
 (function(){var s=document.createElement('style');s.id='patina-admin-v12';s.textContent='\n.pa-form-v9{background:#2f3a2a !important;color:#F5ECDC !important;border:1px solid rgba(201,168,122,.45) !important}\n#patina-admin-overlay .pa-panel,#patina-admin-overlay .pa-panel-v8{background:#2f3a2a !important;color:#F5ECDC !important;border:1px solid rgba(201,168,122,.45) !important}\n#patina-admin-overlay .pa-card{background:#263324 !important;border:1px solid rgba(245,236,220,.12) !important}\n#patina-admin-overlay .pa-preview,.pa-preview-v9{background:rgba(38,51,36,.85) !important;color:#F5ECDC !important}\n.pa-form-v9 input,.pa-form-v9 select,.pa-form-v9 textarea{background:rgba(245,236,220,.92) !important;color:#121212 !important}\n';document.head.appendChild(s);})();
+
+(function(){var s=document.createElement('style');s.id='patina-admin-v13';s.textContent='\n#patina-admin-btn{display:block !important;visibility:visible !important;opacity:1 !important;position:fixed !important;left:50% !important;transform:translateX(-50%) !important;bottom:10px !important;z-index:99999 !important;background:#2f3a2a !important;color:#F5ECDC !important;border:1px solid rgba(201,168,122,.7) !important;padding:7px 14px !important;font-size:11px !important;border-radius:999px !important;box-shadow:0 4px 14px rgba(0,0,0,.4) !important;pointer-events:auto !important}\n#patina-admin-btn:hover{transform:translateX(-50%) scale(1.05) !important}\n';document.head.appendChild(s);})();
+
+window.addEventListener('load', function(){ setTimeout(function(){ try{ if(!document.getElementById('patina-admin-btn')){ var b=document.createElement('button'); b.id='patina-admin-btn'; b.textContent='Admin'; b.onclick=function(){ window.__paOpenAdmin && window.__paOpenAdmin(); }; document.body.appendChild(b); } }catch(e){} }, 800); });
