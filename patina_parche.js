@@ -383,3 +383,48 @@ document.addEventListener('click', function(e){
 
 // Si overlay está abierto, ocultar botón
 setInterval(function(){var ov=document.getElementById('patina-admin-overlay'); if(ov && ov.classList.contains('open')){ document.body.classList.add('patina-admin-open'); } else { document.body.classList.remove('patina-admin-open'); } }, 500);
+
+// FIX v5 - Login modal estilo CAVI con estética Pátina + Panel clarito
+(function(){
+var s=document.createElement('style'); s.id='patina-admin-v5'; s.textContent='\n/* PÁTINA Admin v5 - Visual clarita estilo CAVI pero con colores Pátina */\n#patina-admin-overlay{background:rgba(18,18,18,.55) !important;backdrop-filter:blur(4px)}\n#patina-admin-overlay .pa-panel{background:#F5ECDC !important;color:#121212 !important;border:none !important;border-radius:22px !important;padding:20px !important;box-shadow:0 20px 60px rgba(0,0,0,.35);max-width:640px !important}\n#patina-admin-overlay .pa-panel h2{color:#121212 !important;font-family:Georgia,serif !important;font-weight:600 !important;font-size:22px !important}\n#patina-admin-overlay .pa-panel .pa-small{color:rgba(18,18,18,.65) !important}\n#patina-admin-overlay .pa-panel input,#patina-admin-overlay .pa-panel select,#patina-admin-overlay .pa-panel textarea{background:#fff !important;color:#121212 !important;border:1px solid rgba(18,18,18,.12) !important;border-radius:999px !important;padding:11px 14px !important}\n#patina-admin-overlay .pa-panel textarea{border-radius:14px !important}\n#patina-admin-overlay .pa-btn{background:#121212 !important;color:#F5ECDC !important;border-radius:999px !important;padding:10px 16px !important;transition:transform .15s, box-shadow .15s}\n#patina-admin-overlay .pa-btn:hover{transform:scale(1.03);box-shadow:0 4px 14px rgba(0,0,0,.18)}\n#patina-admin-overlay .pa-btn:active{transform:scale(.97)}\n#patina-admin-overlay .pa-btn-ghost{background:#fff !important;color:#121212 !important;border:1px solid rgba(18,18,18,.15) !important;border-radius:999px !important;transition:transform .15s}\n#patina-admin-overlay .pa-btn-ghost:hover{transform:scale(1.03)}\n#patina-admin-overlay .pa-btn-ghost:active{transform:scale(.97)}\n#patina-admin-overlay .pa-btn-danger{background:#fff !important;color:#8a3a2a !important;border:1px solid rgba(138,58,42,.35) !important;border-radius:999px !important}\n#patina-admin-overlay .pa-card{background:#fff !important;border:1px solid rgba(18,18,18,.06) !important;border-radius:14px !important;padding:10px 12px !important;box-shadow:0 1px 4px rgba(0,0,0,.04)}\n#patina-admin-overlay .pa-card b{color:#121212 !important}\n#patina-admin-overlay .pa-preview{background:#fff !important;color:#121212 !important;border:1px solid rgba(18,18,18,.08) !important}\n/* Login modal Pátina */\n#patina-login-overlay{position:fixed;inset:0;z-index:10001;background:rgba(18,18,18,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px}\n#patina-login-card{background:#F5ECDC;color:#121212;border-radius:20px;padding:22px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.35)}\n#patina-login-card h3{margin:0 0 4px;font-family:Georgia,serif;font-size:20px;font-weight:600}\n#patina-login-card p{margin:0 0 14px;font-size:13px;color:rgba(18,18,18,.65)}\n#patina-login-card input{width:100%;background:#fff;color:#121212;border:1px solid rgba(18,18,18,.12);border-radius:999px;padding:12px 14px;font-size:14px;box-sizing:border-box;outline:none}\n#patina-login-card input:focus{border-color:#C9A87A}\n#patina-login-enter{width:100%;background:#C9A87A !important;background:#b98a5a !important;color:#fff !important;border:none;border-radius:999px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;margin-top:12px;transition:transform .15s}\n#patina-login-enter:hover{transform:scale(1.02)}\n#patina-login-enter:active{transform:scale(.98)}\n#patina-login-back{width:100%;background:none;border:none;color:rgba(18,18,18,.65);padding:10px;cursor:pointer;font-size:13px}\n#patina-login-error{color:#8a3a2a;font-size:12px;margin-top:8px;display:none}\n'; document.head.appendChild(s);
+
+// Reemplazar openAdmin que usaba prompt() por modal bonito
+window.__patinaOpenLogin = function(){
+  var old=document.getElementById('patina-login-overlay');
+  if(old) old.remove();
+  var ov=document.createElement('div'); ov.id='patina-login-overlay';
+  ov.innerHTML = '<div id="patina-login-card">'
+    + '<h3>Administración - PÁTINA</h3>'
+    + '<p>Escribí tu contraseña para entrar.</p>'
+    + '<input id="patina-login-input" type="password" placeholder="Contraseña" autocomplete="current-password">'
+    + '<div id="patina-login-error">Contraseña incorrecta.</div>'
+    + '<button id="patina-login-enter">Entrar</button>'
+    + '<button id="patina-login-back">Volver a tienda</button>'
+    + '</div>';
+  document.body.appendChild(ov);
+  var input=document.getElementById('patina-login-input');
+  setTimeout(function(){ input.focus(); }, 100);
+  function tryEnter(){
+    var pw=input.value||'';
+    // checkPw está en el closure principal, usar hash via localStorage
+    var stored = localStorage.getItem('patina_admin_pw_hash_v1');
+    function hashPw2(s){ var h=0; s=String(s); for(var i=0;i<s.length;i++){ h=((h<<5)-h)+s.charCodeAt(i); h|=0; } return "h"+(h>>>0).toString(36)+"_"+s.length; }
+    var ok = stored ? (hashPw2(pw)===stored) : (pw==="PATINA2026");
+    if(ok){ ov.remove(); document.body.classList.add('patina-admin-open'); if(typeof renderAdmin==='function'){ renderAdmin(); } else { location.reload(); } }
+    else { document.getElementById('patina-login-error').style.display='block'; input.select(); }
+  }
+  document.getElementById('patina-login-enter').onclick=tryEnter;
+  input.addEventListener('keydown', function(e){ if(e.key==='Enter') tryEnter(); });
+  document.getElementById('patina-login-back').onclick=function(){ ov.remove(); };
+  ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+};
+// Interceptar el botón Admin para que use el modal, no el prompt
+setTimeout(function(){
+  var btn=document.getElementById('patina-admin-btn');
+  if(btn){ btn.onclick=function(){ window.__patinaOpenLogin(); }; }
+}, 500);
+// Si la URL tiene ?admin=1, abrir modal también
+if(window.location.search.indexOf('admin=1')!==-1){
+  setTimeout(function(){ window.__patinaOpenLogin(); }, 600);
+}
+})();
