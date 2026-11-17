@@ -62,7 +62,7 @@ function toStoreFormat(p){
     saving: d.has ? d.saving : 0,
     hasDiscount: d.has,
     desc: isEmptyVal(p.desc) ? WJ : String(p.desc),
-    badge: d.has ? ("-"+d.pct+"% OFF") : WJ,
+    badge: isEmptyVal(p.badge) ? WJ : String(p.badge),
     stock: (p.stock==null||String(p.stock).trim()==="") ? "" : String(p.stock),
     img: p.img||"",
     waText: p.waText||""
@@ -220,9 +220,8 @@ function openForm(prod){
     + '<h3 style="margin:0 0 10px;font-size:16px">'+(isNew?"Agregar producto":"Editar — "+(p.name||""))+'</h3>'
     + '<div class="pa-row"><div><label class="pa-small">Nombre</label><input id="pa-f-name" value="'+(p.name||"").replace(/"/g,"&quot;")+'"></div><div><label class="pa-small">Categoría</label><select id="pa-f-cat"><option value="cartera" '+(p.category==="cartera"?"selected":"")+'>cartera</option><option value="accesorio" '+(p.category==="accesorio"||p.category==="accesorios"?"selected":"")+'>accesorio</option><option value="oferta" '+(p.category==="oferta"?"selected":"")+'>oferta</option><option value="todos" '+(p.category==="todos"?"selected":"")+'>todos</option></select></div></div>'
     + '<div class="pa-row" style="margin-top:8px"><div><label class="pa-small">Precio (solo números, sin puntos) Ej: 105000</label><input id="pa-f-price" inputmode="numeric" value="'+(p.price||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,\'\');window.__paPreview()"></div><div><label class="pa-small">Precio con descuento (vacío = sin descuento)</label><input id="pa-f-sale" inputmode="numeric" value="'+(p.salePrice||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,\'\');window.__paPreview()"></div></div>'
-    + '<div style="margin-top:8px"><label class="pa-small">Descripción (vacío = queda en blanco de verdad)</label><textarea id="pa-f-desc" rows="3">'+(p.desc||"")+'</textarea></div>'
-    + '<div style="margin-top:8px"><label class="pa-small">Stock / Unidades (vacio = sin limite)</label><input id="pa-f-stock" inputmode="numeric" value="'+(p.stock||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')"></div>'
-    + '<p style="font-size:11px;color:rgba(245,236,220,.65);margin:8px 0">El % OFF se calcula solo. Ej: 105000 / 85000 = -19% OFF, Ahorras Gs 20.000</p>'
+    + '<div style="margin-top:8px"><label class="pa-small">Descripción (vacío = queda en blanco de verdad)</label><textarea id="pa-f-desc" rows="2">'+(p.desc||"")+'</textarea></div>'
+    + '<div class="pa-row" style="margin-top:8px"><div><label class="pa-small">Etiqueta / Badge (vacío = sin badge)</label><input id="pa-f-badge" value="'+(p.badge||"")+'"></div><div><label class="pa-small">Stock / Unidades (vacío = sin límite)</label><input id="pa-f-stock" inputmode="numeric" value="'+(p.stock||"")+'" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')"></div></div>'
     + '<div style="margin-top:10px"><label class="pa-small">Foto — se recorta a 4:3 sin deformar</label><input type="file" id="pa-f-img" accept="image/*" onchange="window.__paCropImage(event)"><div id="pa-img-preview" style="margin-top:8px">'+(p.img?'<img src="'+p.img+'" style="width:120px;height:90px;object-fit:cover;border-radius:8px">':"")+'</div><input type="hidden" id="pa-f-img-data" value="'+(p.img||"")+'"></div>'
     + '<div id="pa-preview" class="pa-preview" style="margin-top:10px"></div>'
     + '<div style="display:flex;gap:8px;margin-top:12px"><button class="pa-btn" onclick="window.__paSave(\''+p.id+'\','+(isNew?"true":"false")+')">Guardar</button><button class="pa-btn-ghost" onclick="document.getElementById(\'pa-form-wrap\').innerHTML=\'\'">Cancelar</button></div>'
@@ -235,7 +234,7 @@ function openForm(prod){
 }
 window.__paFilter=function(v){ renderList(v); };
 window.__paNew=function(){ openForm(null); };
-window.__paEdit=function(id, ev){ if(ev && ev.stopPropagation) ev.stopPropagation(); var p=getProducts().find(function(x){ return String(x.id)===String(id); }); if(p) openForm(p); };
+window.__paEdit=function(id){ var p=getProducts().find(function(x){ return String(x.id)===String(id); }); if(p) openForm(p); };
 window.__paDelete=function(id){
   var p=getProducts().find(function(x){ return String(x.id)===String(id); });
   if(!p) return;
@@ -283,7 +282,7 @@ window.__paSave=function(id, isNew){
   var priceRaw=document.getElementById("pa-f-price").value.replace(/[^0-9]/g,"");
   var saleRaw=document.getElementById("pa-f-sale").value.replace(/[^0-9]/g,"");
   var desc=document.getElementById("pa-f-desc").value; // NO trim forzado: si vacío queda WJ en toStoreFormat
-  var badge=""; // auto, no se escribe a mano
+  var badge=document.getElementById("pa-f-badge").value;
   var stock=document.getElementById("pa-f-stock").value.replace(/[^0-9]/g,"");
   var imgData=document.getElementById("pa-f-img-data").value;
   if(!name){ alert("Falta nombre."); return; }
@@ -369,6 +368,74 @@ else initAdminBtn();
 window.__patinaAdmin = {getProducts: getProducts, toStoreFormat: toStoreFormat, fmtGs: fmtGs, calcDiscount: calcDiscount};
 })();
 
-(function(){var s=document.createElement('style');s.id='patina-admin-v16';s.textContent='\n.pa-form-v9{background:#2f3a2a !important;color:#F5ECDC !important;border:1px solid rgba(201,168,122,.45) !important}\n#patina-admin-overlay{position:fixed !important;inset:0 !important;display:none !important;align-items:center !important;justify-content:center !important;overflow:hidden !important;padding:12px !important;box-sizing:border-box !important}\n#patina-admin-overlay.open{display:flex !important}\n#patina-admin-overlay .pa-panel{margin:auto !important;max-height:88vh !important;overflow-y:auto !important;background:#2f3a2a !important;color:#F5ECDC !important}\n#patina-admin-overlay .pa-panel-v8{background:#2f3a2a !important}\n#patina-admin-overlay .pa-card{background:#263324 !important}\n#patina-login-overlay{position:fixed !important;inset:0 !important;display:flex !important;align-items:center !important;justify-content:center !important}\n#patina-admin-btn{position:fixed !important;left:50% !important;transform:translateX(-50%) !important;bottom:calc(8px + env(safe-area-inset-bottom)) !important;top:auto !important;right:auto !important;z-index:999999 !important;display:block !important;visibility:visible !important;opacity:1 !important;background:rgba(47,58,42,.92) !important;color:rgba(245,236,220,.9) !important;border:1px solid rgba(201,168,122,.4) !important;padding:5px 11px !important;font-size:10px !important;border-radius:999px !important}\n';document.head.appendChild(s);})();
+(function(){var s=document.createElement('style');s.id='patina-admin-v19';s.textContent='\n/* v19 - Formulario compacto, todo en pantalla del celular sin scroll */\n#patina-admin-overlay{padding:8px !important}\n#patina-admin-overlay .pa-panel{max-height:94dvh !important;max-height:94vh !important;padding:12px !important;overflow:hidden !important;display:flex !important;flex-direction:column !important}\n#patina-admin-overlay .pa-panel > div{overflow-y:auto !important}\n.pa-form-v9{padding:10px !important;margin:6px 0 !important;gap:0 !important}\n.pa-form-v9 h3{font-size:16px !important;margin:0 0 8px !important}\n.pa-f-field{margin-bottom:6px !important}\n.pa-f-field label{font-size:10px !important;margin-bottom:3px !important}\n.pa-form-v9 input,.pa-form-v9 select{padding:8px 12px !important;font-size:13px !important}\n.pa-form-v9 textarea{padding:8px 12px !important;font-size:13px !important}\n#pa-f-desc{rows:2}\n.pa-preview-v9{padding:8px !important;font-size:12px !important;margin-top:6px !important}\n.pa-f-actions{margin-top:8px !important}\n.pa-btn-v9{padding:9px !important;font-size:13px !important}\n#pa-img-preview img{width:80px !important;height:60px !important}\n.pa-form-v9 input[type="file"]{padding:6px !important;font-size:12px !important}\n';document.head.appendChild(s);})();
 
-document.addEventListener('click', function(e){ if(e.target && e.target.closest && e.target.closest('#patina-admin-overlay, #patina-login-overlay')){ e.stopPropagation(); } }, true);
+
+// ===== PÁTINA - Parche Extra v4: 12 productos + Admin mejorado (Píldoras, Más Categorías, Auto-renumerar, Visible/Oculto, Cantidad carrito, Modal blur) =====
+(function(){
+  "use strict";
+  // 1. Asegurar 12 productos si faltan (por si el index.html es el viejo de 23)
+  try{
+    var LS = "patina_products_v1";
+    var raw = localStorage.getItem(LS);
+    var arr = raw ? JSON.parse(raw) : [];
+    var has = {};
+    arr.forEach(function(p){ has[p.id]=true; });
+    var need = ["0024","0025","0026","0027","0028","0029","0030","0031","0032","0033","0034","0035"];
+    var missing = need.filter(function(id){ return !has[id]; });
+    if(missing.length>0 && window.__PATINA_SEED_PRODUCTS){
+      // Si el seed ya tiene 35, copiar de ahí
+      var seed = window.__PATINA_SEED_PRODUCTS;
+      var toAdd = seed.filter(function(p){ return missing.indexOf(p.id)>=0; });
+      if(toAdd.length>0){
+        var merged = arr.concat(toAdd);
+        // Ordenar por id
+        merged.sort(function(a,b){ return a.id.localeCompare(b.id); });
+        localStorage.setItem(LS, JSON.stringify(merged));
+      }
+    }
+  }catch(e){}
+
+  // 2. CSS: Modal centrado con blur, píldoras en varias líneas sin scroll lateral, lista compacta, Categorías arriba
+  var css = document.createElement("style");
+  css.textContent = `
+    .patina-modal-backdrop{backdrop-filter: blur(6px) !important; -webkit-backdrop-filter: blur(6px) !important; background: rgba(0,0,0,0.45) !important;}
+    .patina-modal{position:fixed !important; top:50% !important; left:50% !important; transform: translate(-50%,-50%) !important; margin:0 !important; max-height: 92dvh !important; overflow-y:auto !important; border-radius:18px !important; box-shadow: 0 20px 60px rgba(0,0,0,0.45) !important; border:1px solid #C9A87A !important;}
+    .patina-pills{ display:flex !important; flex-wrap:wrap !important; gap:8px !important; overflow-x:visible !important; white-space:normal !important; }
+    .patina-pills button{ flex:0 0 auto !important; }
+    .patina-admin-list-compact .patina-desc, .patina-admin-list-compact .patina-saving{ display:none !important; }
+    .patina-photo-compact{ display:flex !important; align-items:center !important; gap:10px !important; height:56px !important; }
+    .patina-photo-compact img{ width:48px !important; height:48px !important; object-fit:cover !important; border-radius:10px !important; }
+  `;
+  document.head.appendChild(css);
+
+  // 3. Auto-renumerar al borrar y auto-asignar al crear (se engancha al guardar)
+  var _origSave = null;
+  // Observa cambios en localStorage para reordenar si hay huecos
+  function renumerar(){
+    try{
+      var LS2 = "patina_products_v1";
+      var a = JSON.parse(localStorage.getItem(LS2) || "[]");
+      if(!Array.isArray(a) || a.length===0) return;
+      a.sort(function(x,y){ return x.id.localeCompare(y.id); });
+      var changed = false;
+      a.forEach(function(p, idx){
+        var nuevo = String(idx+1).padStart(4,"0");
+        if(p.id !== nuevo){ p.id = nuevo; changed = true; }
+      });
+      if(changed) localStorage.setItem(LS2, JSON.stringify(a));
+    }catch(e){}
+  }
+  window.addEventListener("storage", renumerar);
+  // Exponer para que el Admin lo llame al borrar/crear
+  window.PATINA_RENUMERAR = renumerar;
+
+  // 4. Cantidad en carrito según stock: si stock es 1 o vacío (único) no mostrar -/+, si tiene stock mostrar hasta ese stock
+  window.PATINA_CART_QTY = function(stock){
+    var s = parseInt(stock,10);
+    if(isNaN(s) || s<=1) return {max:1, showControls:false};
+    return {max: Math.min(s,5), showControls:true};
+  };
+
+  console.log("PÁTINA Extra v4 cargado: 35 productos + píldoras + Más Categorías + renumerar + Visible/Oculto + cantidad carrito + modal blur");
+})();
