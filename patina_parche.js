@@ -1,4 +1,21 @@
-// PÁTINA - Parche sincronización CAVI - FIX ANTI-BUCLE
+ // FIX MODAL CELULAR - foto chica, botones abajo, etiqueta arriba
+(function(){
+  var css = ".patina-form-modal{max-height:86dvh!important;overflow-y:auto!important;padding:14px 14px calc(14px + env(safe-area-inset-bottom, 0px))!important;gap:6px!important} .patina-form-modal label{margin:5px 0 3px!important;font-size:10px!important} .patina-form-modal input,.patina-form-modal textarea,.patina-form-modal select{padding:8px 10px!important;font-size:13px!important} .patina-form-modal #patinaF_etiqueta{min-height:52px!important} .patina-form-modal #patinaF_descripcion{min-height:64px!important} .patina-foto{padding:8px 10px!important;gap:10px!important;min-height:48px!important} .patina-foto-ico{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;font-size:16px!important} .patina-form-btns{position:sticky!important;bottom:0!important;background:#121212!important;padding-top:8px!important;z-index:10!important;margin-top:10px!important} .patina-form-btns button{padding:11px!important}";
+  var s=document.createElement('style'); s.textContent=css; document.head.appendChild(s);
+  setInterval(function(){
+    var eti=document.getElementById('patinaF_etiqueta');
+    var des=document.getElementById('patinaF_descripcion');
+    if(!eti || !des) return;
+    var etiLabel=null, desLabel=null;
+    var labs=document.querySelectorAll('#patinaFormModal label');
+    labs.forEach(function(l){ if(l.textContent.indexOf('Etiqueta')!==-1) etiLabel=l; if(l.textContent.indexOf('Descripción')!==-1) desLabel=l; });
+    if(etiLabel && desLabel && etiLabel.compareDocumentPosition(desLabel) & 4){
+      var modal=document.getElementById('patinaFormModal');
+      modal.insertBefore(etiLabel, desLabel);
+      modal.insertBefore(eti, desLabel);
+    }
+  }, 500);
+})();// PÁTINA - Parche sincronización CAVI - FIX ANTI-BUCLE
 // GitHub Pages + Google Apps Script (conexión por proyecto)
 // Admin guarda -> POST a GAS ANTES de recargar -> clientes ven cambio en máximo 15s, sync cada 15s.
 // NO recargar en bucle: solo si cambió algo real, y nunca si estás escribiendo o en Admin.
